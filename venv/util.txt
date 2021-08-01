@@ -1,0 +1,41 @@
+tabela
+
+for idx in range(2, 159):
+    predictionList.append ( predictions(
+        content[idx][82:90],   #alifrom
+        content[idx][91:99],   #ali to
+        content[idx][130],     #strand
+        content[idx][134:143], #e_value
+        content[idx][144:150],  #score
+        content[idx][304:312]  #length
+        ))
+
+---------------        
+
+tabelaV2
+
+for idx in range(2, 53):
+    predictionList.append ( predictions(
+        idx,
+        content[idx][88:96],   #alifrom
+        content[idx][97:105],   #ali to
+        content[idx][136],     #strand
+        content[idx][142:149], #e_value
+        content[idx][151:156],  #score
+        content[idx][310:318]  #length
+        ))
+
+---------------
+
+tabela-cromo3l-insetos
+
+for idx in range(2, 246):
+    predictionList.append ( predictions(
+        idx,
+        content[idx][89:97],   #alifrom
+        content[idx][98:106],   #ali to
+        content[idx][137],     #strand
+        content[idx][143:150], #e_value
+        content[idx][152:157],  #score
+        content[idx][311:319]  #length
+        ))

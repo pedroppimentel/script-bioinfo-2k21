@@ -1,8 +1,10 @@
 import json
 
-#define uma classe para a tabela de predicoes
+resultados = []
+
 class predictions: 
-    def __init__(self, alifrom, alito, strand, e_value, score, length): 
+    def __init__(self, id, alifrom, alito, strand, e_value, score, length): 
+        self.id = id
         self.alifrom = alifrom 
         self.alito = alito
         self.strand = strand
@@ -10,9 +12,9 @@ class predictions:
         self.score = score
         self.length = length
         
-#define uma classe para as anotacoes
 class annotation3L: 
-    def __init__(self, FROM, TO, LENGTH, SENSE): 
+    def __init__(self, id, FROM, TO, LENGTH, SENSE): 
+        self.id = id
         self.FROM = FROM 
         self.TO = TO
         self.LENGTH = LENGTH
@@ -25,69 +27,118 @@ def getLastIndex(line, field):
     return line.find('-', getIndex(line, field))
 
 class finalResults: 
-    def __init__(self, ann, pred): 
+    def __init__(self, ann, preds): 
         self.ann = ann 
-        self.pred = pred 
+        self.preds = preds
 
 def setFinalResults(annotation, predict):
-  resultados.append (
-                    finalResults(
-                    ann=(
-                        annotation3L(
-                            annotation.FROM,
-                            annotation.TO,
-                            annotation.LENGTH,
-                            annotation.SENSE
+  isAdded = False  
+    
+  if len(resultados) > 0:
+    idx = 0
+    for res in resultados:
+        if res.ann.id == annotation.id:
+            resultados[idx].preds.append(
+                            predictions(
+                                predict.id,
+                                predict.alifrom,   #alifrom
+                                predict.alito,   #ali to
+                                predict.strand,     #strand
+                                predict.e_value, #e_value
+                                predict.score,  #score
+                                predict.length, #length
+                            )
                         )
-                    ),
-                    pred=(
-                        predictions(
-                            predict.alifrom,   #alifrom
-                            predict.alito,   #ali to
-                            predict.strand,     #strand
-                            predict.e_value, #e_value
-                            predict.score,  #score
-                            predict.length, #length
-                        )
+            isAdded = True
+            break
+        idx += 1
+    if isAdded:
+        resultados.append (
+                finalResults(
+                ann=(
+                    annotation3L(
+                        annotation.id,
+                        annotation.FROM,
+                        annotation.TO,
+                        annotation.LENGTH,
+                        annotation.SENSE
                     )
-                
-        ))
+                ),
+                preds=[(
+                    predictions(
+                        predict.id,
+                        predict.alifrom,   #alifrom
+                        predict.alito,   #ali to
+                        predict.strand,     #strand
+                        predict.e_value, #e_value
+                        predict.score,  #score
+                        predict.length, #length
+                    )
+                )]
+                    
+            ))
+    isAdded = False
+  else: 
+      resultados.append (
+                finalResults(
+                ann=(
+                    annotation3L(
+                        annotation.id,
+                        annotation.FROM,
+                        annotation.TO,
+                        annotation.LENGTH,
+                        annotation.SENSE
+                    )
+                ),
+                preds=[(
+                    predictions(
+                        predict.id,
+                        predict.alifrom,   #alifrom
+                        predict.alito,   #ali to
+                        predict.strand,     #strand
+                        predict.e_value, #e_value
+                        predict.score,  #score
+                        predict.length, #length
+                    )
+                )]
+                    
+            ))
 
-filename = "../predictionsResults.tbl"
+tabelaFilePath = "../tabelas/tabela-cromo3l-insetos.tbl"
+anotacoesFilePath = "../tabelas/Anotacao_Copia_Cromo-3L.txt"
+resultadoFilePath = "../resultados/resultadosComparacaoC3LI.txt"
+resultadoPredicoesFilePath = "../resultados/predicoesExtraidasC3LI.txt"
+
+filename = tabelaFilePath
 
 with open(filename) as f:
     content = f.readlines()
    
 predictionList = [] 
 
-#percorre linha a linha do arquivo e atribui os valores na lista de obj
-for idx in range(2, 159):
+for idx in range(2, 246):
     predictionList.append ( predictions(
-        content[idx][82:90],   #alifrom
-        content[idx][91:99],   #ali to
-        content[idx][130],     #strand
-        content[idx][134:143], #e_value
-        content[idx][144:150],  #score
-        content[idx][304:312]  #length
+        idx,
+        content[idx][89:97],   #alifrom
+        content[idx][98:106],   #ali to
+        content[idx][137],     #strand
+        content[idx][143:150], #e_value
+        content[idx][152:157],  #score
+        content[idx][311:319]  #length
         ))
 
 predictionList.sort(key=lambda x : x.alifrom)
-
-# for predict in predictionList:
-#    print("PRED---FROM--%2s---TO--%2s---LENGTH--%2s---VALUE--%2s---SCORE--%2s---SENSE--%2s---CLASSIF--Copia" 
-#          % (predict.alifrom.strip(), predict.alito.strip(), predict.length.strip(), predict.e_value.strip(), predict.score.strip(), predict.strand.strip()))
     
-filename = "../Anotacao_Copia_Cromo-3L.txt"
+filename = anotacoesFilePath
 
 with open(filename) as f:
     content = f.readlines()
 
-# cria uma lista de dados       
 annotation3LList = [] 
 
-#percorre linha a linha do arquivo e atribui os valores na lista de obj
-for item in content:
+for idx, item in enumerate(content):
     annotation3LList.append ( annotation3L(
+        idx,
         item[ (getIndex(item, "FROM")) : (getLastIndex(item, "FROM"))],   #alifrom
         item[ (getIndex(item, "TO")) : (getLastIndex(item, "TO"))],   #ali to
         item[ (getIndex(item, "LENGTH")) : (getLastIndex(item, "LENGTH"))],     #strand
@@ -96,13 +147,10 @@ for item in content:
     
 annotation3LList.sort(key=lambda x : x.FROM)   
 
-resultados = []
-
 for annotation in annotation3LList:
     for predict in predictionList:
         if((predict.strand == '+' and annotation.SENSE == 'Direct') or 
-           (predict.strand == '-' and annotation.SENSE == 'Reverse')):
-        #if(predict.strand == '+' and annotation.SENSE == 'Direct'):    
+           (predict.strand == '-' and annotation.SENSE == 'Reverse')):   
             _alifrom = int(predict.alifrom, 16)
             _from = int(annotation.FROM, 16)
             _alito = int(predict.alito, 16)
@@ -110,21 +158,21 @@ for annotation in annotation3LList:
             
             if(_alifrom >= _from and _alito <= _to):
                 setFinalResults(annotation, predict)
-            #elif(_alifrom >= _from and _alito > _to):
-            #    setFinalResults(annotation, predict)
-            #elif(_alifrom < _from and _alito <= _to):
-            #    setFinalResults(annotation, predict)
                 
-with open('resultadosComparacao.txt', 'w') as frc:
-    for resultado in resultados:
-      frc.write('ANNO---FROM--%s---TO--%s---LENGTH--%s---SENSE--%s---CLASSIF--Copia\n' %
-                (resultado.ann.FROM.strip(), resultado.ann.TO.strip(), resultado.ann.LENGTH.strip(), resultado.ann.SENSE.strip()))
-      frc.write('PRED---FROM--%s---TO--%s---LENGTH--%s---SENSE--%s---VALUE--%s---SCORE--%s---CLASSIF--Copia\n' %
-                (resultado.pred.alifrom.strip(), resultado.pred.alito.strip(), resultado.pred.length.strip(), resultado.pred.strand.strip(), 
-                 resultado.pred.e_value.strip(), resultado.pred.score.strip()))
-      frc.write('\n')
+with open(resultadoFilePath, 'w') as frc:
+    for res in resultados:
+        frc.write('ANNO---FROM--%s---TO--%s---LENGTH--%s---SENSE--%s---CLASSIF--Copia\n' %
+                (res.ann.FROM.strip(), res.ann.TO.strip(), res.ann.LENGTH.strip(), res.ann.SENSE.strip()))
+        
+        if (len(res.preds) > 0):
+            for pred in res.preds:
+              frc.write('PRED---FROM--%s---TO--%s---LENGTH--%s---SENSE--%s---VALUE--%s---SCORE--%s---CLASSIF--Copia\n' %
+                (pred.alifrom.strip(), pred.alito.strip(), pred.length.strip(), pred.strand.strip(), 
+                 pred.e_value.strip(), pred.score.strip()))
+    
+        frc.write('\n')
       
-with open('predicoesExtraidas.txt', 'w') as fpe:
+with open(resultadoPredicoesFilePath, 'w') as fpe:
     for pred in predictionList:
       fpe.write('PRED---FROM--%s---TO--%s---LENGTH--%s---SENSE--%s---VALUE--%s---SCORE--%s---CLASSIF--Copia\n' %
                 (pred.alifrom.strip(), pred.alito.strip(), pred.length.strip(), pred.strand.strip(), 
