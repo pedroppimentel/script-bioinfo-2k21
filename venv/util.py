@@ -1,5 +1,5 @@
 #carrega arquivos
-filename = "Cromo-3L.fasta"
+filename = "../Cromo-3L.fasta"
 
 with open(filename) as f:
     content = f.read().replace('\n', '')
@@ -9,13 +9,19 @@ content = content.replace('>3L type=golden_path_region; loc=3L:1..28110227; ID=3
 
 sequence = ""
 
+def getIndex(line, field):
+    return line.find(field) + len(field) + 2
+
+def getLastIndex(line, field):
+    return line.find('-', getIndex(line, field))
+
 for line in content:
     sequence = sequence + line
 
 # with open('Cromo-3L-Remodelado.txt', 'w') as f:
 #     print(content, file=f) 
 
-tabela = "tabela.tbl"
+tabela = "../resultadoComparacoes_v1.txt"
 
 with open(tabela) as t:
     content2 = t.readlines()
@@ -34,17 +40,21 @@ class prediction:
 predictionList = [] 
 
 #percorre linha a linha do arquivo e atribui os valores na lista de obj
-for idx in range(2, 159):
-    predictionList.append ( prediction(
-        content2[idx][82:90],   #alifrom
-        content2[idx][91:99],   #ali to
-        content2[idx][130],     #strand
-        content2[idx][134:143], #e_value
-        content2[idx][144:150],  #score
-        content2[idx][297:314]  #length
-        ))
+for line in content2:
+    if(line[0:4] == "PRED"):
+        predictionList.append ( prediction(
+            line[(getIndex(line, "FROM")) : (getLastIndex(line, "FROM"))],   #alifrom
+            line[(getIndex(line, "TO")) : (getLastIndex(line, "TO"))],   #ali to
+            line[(getIndex(line, "SENSE"))],    #strand
+            line[(getIndex(line, "VALUE")) : (getLastIndex(line, "FROM"))], #e_value
+            line[(getIndex(line, "SCORE")) : (getLastIndex(line, "FROM"))],  #score
+            line[(getIndex(line, "LENGTH")) : (getLastIndex(line, "FROM"))]  #length
+            ))
 
 predictionList.sort(key=lambda x : x.alifrom)
+
+# for line in content2:
+#     print(line[0:4])
 
 # j = 0
 # for obj in predictionList:
