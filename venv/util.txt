@@ -10,21 +10,6 @@ for idx in range(2, 44):
         content[idx][304:312]  #length
         ))
 
----------------        
-
-tabelaV2
-
-for idx in range(2, 53):
-    predictionList.append ( predictions(
-        idx,
-        content[idx][88:96],   #alifrom
-        content[idx][97:105],   #ali to
-        content[idx][136],     #strand
-        content[idx][142:149], #e_value
-        content[idx][151:156],  #score
-        content[idx][310:318]  #length
-        ))
-
 ---------------
 
 tabela-cromo3l-insetos
