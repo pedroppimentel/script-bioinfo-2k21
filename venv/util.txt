@@ -1,6 +1,6 @@
 tabela
 
-for idx in range(2, 159):
+for idx in range(2, 44):
     predictionList.append ( predictions(
         content[idx][82:90],   #alifrom
         content[idx][91:99],   #ali to
@@ -29,7 +29,7 @@ for idx in range(2, 53):
 
 tabela-cromo3l-insetos
 
-for idx in range(2, 246):
+for idx in range(2, 110):
     predictionList.append ( predictions(
         idx,
         content[idx][89:97],   #alifrom

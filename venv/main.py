@@ -1,5 +1,3 @@
-import json
-
 resultados = []
 
 class predictions: 
@@ -27,32 +25,11 @@ def getLastIndex(line, field):
     return line.find('-', getIndex(line, field))
 
 class finalResults: 
-    def __init__(self, ann, preds): 
+    def __init__(self, ann, pred): 
         self.ann = ann 
-        self.preds = preds
+        self.pred = pred
 
 def setFinalResults(annotation, predict):
-  isAdded = False  
-    
-  if len(resultados) > 0:
-    idx = 0
-    for res in resultados:
-        if res.ann.id == annotation.id:
-            resultados[idx].preds.append(
-                            predictions(
-                                predict.id,
-                                predict.alifrom,   #alifrom
-                                predict.alito,   #ali to
-                                predict.strand,     #strand
-                                predict.e_value, #e_value
-                                predict.score,  #score
-                                predict.length, #length
-                            )
-                        )
-            isAdded = True
-            break
-        idx += 1
-    if isAdded:
         resultados.append (
                 finalResults(
                 ann=(
@@ -64,7 +41,7 @@ def setFinalResults(annotation, predict):
                         annotation.SENSE
                     )
                 ),
-                preds=[(
+                pred=(
                     predictions(
                         predict.id,
                         predict.alifrom,   #alifrom
@@ -74,35 +51,10 @@ def setFinalResults(annotation, predict):
                         predict.score,  #score
                         predict.length, #length
                     )
-                )]
+                )
                     
             ))
-    isAdded = False
-  else: 
-      resultados.append (
-                finalResults(
-                ann=(
-                    annotation3L(
-                        annotation.id,
-                        annotation.FROM,
-                        annotation.TO,
-                        annotation.LENGTH,
-                        annotation.SENSE
-                    )
-                ),
-                preds=[(
-                    predictions(
-                        predict.id,
-                        predict.alifrom,   #alifrom
-                        predict.alito,   #ali to
-                        predict.strand,     #strand
-                        predict.e_value, #e_value
-                        predict.score,  #score
-                        predict.length, #length
-                    )
-                )]
-                    
-            ))
+
 
 tabelaFilePath = "../tabelas/tabela-cromo3l-insetos.tbl"
 anotacoesFilePath = "../tabelas/Anotacao_Copia_Cromo-3L.txt"
@@ -116,7 +68,7 @@ with open(filename) as f:
    
 predictionList = [] 
 
-for idx in range(2, 246):
+for idx in range(2, 110):
     predictionList.append ( predictions(
         idx,
         content[idx][89:97],   #alifrom
@@ -151,10 +103,10 @@ for annotation in annotation3LList:
     for predict in predictionList:
         if((predict.strand == '+' and annotation.SENSE == 'Direct') or 
            (predict.strand == '-' and annotation.SENSE == 'Reverse')):   
-            _alifrom = int(predict.alifrom, 16)
-            _from = int(annotation.FROM, 16)
-            _alito = int(predict.alito, 16)
-            _to = int(annotation.TO, 16)
+            _alifrom = int(predict.alifrom, 10)
+            _from = int(annotation.FROM, 10)
+            _alito = int(predict.alito, 10)
+            _to = int(annotation.TO, 10)
             
             if(_alifrom >= _from and _alito <= _to):
                 setFinalResults(annotation, predict)
@@ -164,12 +116,14 @@ with open(resultadoFilePath, 'w') as frc:
         frc.write('ANNO---FROM--%s---TO--%s---LENGTH--%s---SENSE--%s---CLASSIF--Copia\n' %
                 (res.ann.FROM.strip(), res.ann.TO.strip(), res.ann.LENGTH.strip(), res.ann.SENSE.strip()))
         
-        if (len(res.preds) > 0):
-            for pred in res.preds:
-              frc.write('PRED---FROM--%s---TO--%s---LENGTH--%s---SENSE--%s---VALUE--%s---SCORE--%s---CLASSIF--Copia\n' %
-                (pred.alifrom.strip(), pred.alito.strip(), pred.length.strip(), pred.strand.strip(), 
-                 pred.e_value.strip(), pred.score.strip()))
-    
+        if (res.ann.SENSE == "Reverse"):
+            frc.write('PRED---FROM--%s---TO--%s---LENGTH--%s---SENSE--%s---VALUE--%s---SCORE--%s---CLASSIF--Copia\n' %
+                (res.pred.alito.strip(), res.pred.alifrom.strip(), res.pred.length.strip(), res.pred.strand.strip(), 
+                 res.pred.e_value.strip(), res.pred.score.strip())) 
+        else:
+            frc.write('PRED---FROM--%s---TO--%s---LENGTH--%s---SENSE--%s---VALUE--%s---SCORE--%s---CLASSIF--Copia\n' %
+                (res.pred.alifrom.strip(), res.pred.alito.strip(), res.pred.length.strip(), res.pred.strand.strip(), 
+                 res.pred.e_value.strip(), res.pred.score.strip()))    
         frc.write('\n')
       
 with open(resultadoPredicoesFilePath, 'w') as fpe:
